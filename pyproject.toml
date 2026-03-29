@@ -1,5 +1,5 @@
 [project]
-name = "ha-openai-ollama-proxy"
+name = "ha-openai-compatible-addon"
 version = "1.0.0"
 description = "Add your description here"
 readme = "README.md"
