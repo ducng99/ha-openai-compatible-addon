@@ -1,0 +1,10 @@
+{
+  "domain": "openai_ollama_proxy",
+  "name": "OpenAI-compatible Ollama Proxy",
+  "codeowners": ["@ducng99"],
+  "config_flow": true,
+  "documentation": "https://github.com/ducng99/ha-openai-ollama-proxy",
+  "issue_tracker": "https://github.com/ducng99/ha-openai-ollama-proxy/issues",
+  "requirements": ["fastapi==0.135.2", "uvicorn==0.42.0"],
+  "version": "1.0.0"
+}
