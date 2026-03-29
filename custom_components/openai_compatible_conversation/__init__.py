@@ -34,7 +34,7 @@ from homeassistant.helpers import (
 )
 from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.helpers.typing import ConfigType
-from openai.types.responses import Response
+from openai.types.chat import ChatCompletion
 
 from .const import (
     CONF_API_BASE_URL,
@@ -102,14 +102,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
         model_args = {
             "model": model,
-            "input": [
+            "messages": [
                 {
-                    "type": "message",
                     "role": "user",
                     "content": call.data[CONF_PROMPT],
                 }
             ],
-            "max_output_tokens": conversation_subentry.data.get(
+            "max_tokens": conversation_subentry.data.get(
                 CONF_MAX_TOKENS, RECOMMENDED_MAX_TOKENS
             ),
             "top_p": conversation_subentry.data.get(CONF_TOP_P, RECOMMENDED_TOP_P),
@@ -117,18 +116,19 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 CONF_TEMPERATURE, RECOMMENDED_TEMPERATURE
             ),
             "user": call.context.user_id,
-            "store": False,
         }
 
         try:
-            response: Response = await client.responses.create(**model_args)
+            response: ChatCompletion = await client.chat.completions.create(
+                **model_args
+            )
         except openai.AuthenticationError as err:
             entry.async_start_reauth(hass)
             raise HomeAssistantError("Authentication error") from err
         except openai.OpenAIError as err:
             raise HomeAssistantError(f"Error generating content: {err}") from err
 
-        return {"text": response.output_text}
+        return {"text": response.choices[0].message.content or ""}
 
     hass.services.async_register(
         DOMAIN,
