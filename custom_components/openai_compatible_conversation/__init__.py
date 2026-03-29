@@ -5,9 +5,7 @@ from __future__ import annotations
 from types import MappingProxyType
 
 import openai
-from openai.types.responses import Response
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry, ConfigSubentry
 from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import (
@@ -24,19 +22,25 @@ from homeassistant.exceptions import (
 )
 from homeassistant.helpers import (
     config_validation as cv,
+)
+from homeassistant.helpers import (
     device_registry as dr,
+)
+from homeassistant.helpers import (
     entity_registry as er,
+)
+from homeassistant.helpers import (
     selector,
 )
 from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.helpers.typing import ConfigType
+from openai.types.responses import Response
 
 from .const import (
     CONF_API_BASE_URL,
     CONF_CHAT_MODEL,
     CONF_MAX_TOKENS,
     CONF_PROMPT,
-    CONF_REASONING_EFFORT,
     CONF_TEMPERATURE,
     CONF_TOP_P,
     DEFAULT_AI_TASK_NAME,
@@ -49,7 +53,6 @@ from .const import (
     RECOMMENDED_API_BASE_URL,
     RECOMMENDED_CHAT_MODEL,
     RECOMMENDED_MAX_TOKENS,
-    RECOMMENDED_REASONING_EFFORT,
     RECOMMENDED_STT_OPTIONS,
     RECOMMENDED_TEMPERATURE,
     RECOMMENDED_TOP_P,
