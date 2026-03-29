@@ -1,8 +1,8 @@
 {
-  "domain": "openai_conversation",
-  "name": "OpenAI",
+  "domain": "openai_compatible_conversation",
+  "name": "OpenAI-compatible",
   "after_dependencies": ["assist_pipeline", "intent"],
-  "codeowners": [],
+  "codeowners": ["@ducng99"],
   "config_flow": true,
   "dependencies": ["conversation"],
   "documentation": "https://www.home-assistant.io/integrations/openai_conversation",
