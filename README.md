@@ -17,7 +17,7 @@ A custom Home Assistant integration that extends the official OpenAI Conversatio
 
 ### Manual
 
-1. Copy the `custom_components/openai_conversation` folder into your Home Assistant `custom_components` directory.
+1. Copy the `custom_components/openai_compatible_conversation` folder into your Home Assistant `custom_components` directory.
 2. Restart Home Assistant.
 
 ## Configuration
