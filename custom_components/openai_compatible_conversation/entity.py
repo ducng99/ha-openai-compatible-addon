@@ -119,12 +119,9 @@ def _convert_content_to_param(
             continue
 
         if content.content:
-            role: Literal["user", "assistant", "system", "developer"] = content.role
-            if role == "system":
-                role = "developer"
             messages.append(
                 EasyInputMessageParam(
-                    type="message", role=role, content=content.content
+                    type="message", role=content.role, content=content.content
                 )
             )
 
@@ -165,6 +162,7 @@ async def _transform_stream(
     """Transform an OpenAI delta stream into HA format."""
     last_summary_index = None
     last_role: Literal["assistant", "tool_result"] | None = None
+    received_text_delta = False
 
     async for event in stream:
         LOGGER.debug("Received event: %s", event)
@@ -187,7 +185,12 @@ async def _transform_stream(
                 last_role = "assistant"
                 last_summary_index = None
         elif isinstance(event, ResponseOutputItemDoneEvent):
-            if isinstance(event.item, ResponseReasoningItem):
+            if isinstance(event.item, ResponseOutputMessage):
+                if not received_text_delta:
+                    for part in event.item.content:
+                        if part.type == "output_text" and part.text:
+                            yield {"content": part.text}
+            elif isinstance(event.item, ResponseReasoningItem):
                 yield {
                     "native": ResponseReasoningItem(
                         type="reasoning",
@@ -199,6 +202,7 @@ async def _transform_stream(
                 last_summary_index = len(event.item.summary) - 1
         elif isinstance(event, ResponseTextDeltaEvent):
             if event.delta:
+                received_text_delta = True
                 yield {"content": event.delta}
         elif isinstance(event, ResponseReasoningSummaryTextDeltaEvent):
             if (
@@ -213,12 +217,24 @@ async def _transform_stream(
             current_tool_call.arguments += event.delta
         elif isinstance(event, ResponseFunctionCallArgumentsDoneEvent):
             current_tool_call.status = "completed"
+            try:
+                tool_args = (
+                    json.loads(current_tool_call.arguments)
+                    if current_tool_call.arguments
+                    else {}
+                )
+            except json.JSONDecodeError:
+                LOGGER.warning(
+                    "Failed to parse tool arguments: %s",
+                    current_tool_call.arguments,
+                )
+                tool_args = {}
             yield {
                 "tool_calls": [
                     llm.ToolInput(
                         id=current_tool_call.call_id,
                         tool_name=current_tool_call.name,
-                        tool_args=json.loads(current_tool_call.arguments),
+                        tool_args=tool_args,
                     )
                 ]
             }
@@ -272,6 +288,7 @@ async def _transform_stream(
                 reason = event.response.error.message
             raise HomeAssistantError(f"Response failed: {reason}")
         elif isinstance(event, ResponseErrorEvent):
+            LOGGER.error("Response error: %s", event.message)
             raise HomeAssistantError(f"Response error: {event.message}")
 
 
