@@ -324,7 +324,12 @@ class OpenAIBaseLLMEntity(Entity):
                 LOGGER.error("Rate limited: %s", err)
                 raise HomeAssistantError("Rate limited or insufficient funds") from err
             except openai.OpenAIError as err:
-                LOGGER.error("Error talking to API: %s", err)
+                LOGGER.error(
+                    "Error talking to API: %s\nRequest: %s\nMessages: %s",
+                    err,
+                    model_args,
+                    messages,
+                )
                 raise HomeAssistantError("Error talking to API") from err
 
             if not chat_log.unresponded_tool_results:
@@ -349,10 +354,9 @@ async def async_prepare_files_for_prompt(
             if mime_type is None:
                 mime_type = guess_file_type(file_path)[0]
 
-            if not mime_type or not mime_type.startswith(("image/", "application/pdf")):
+            if not mime_type or not mime_type.startswith("image/"):
                 raise HomeAssistantError(
-                    "Only images and PDF are supported,"
-                    f"`{file_path}` is not an image file or PDF"
+                    f"Only images are supported, `{file_path}` is not an image file"
                 )
 
             base64_file = base64.b64encode(file_path.read_bytes()).decode("utf-8")
@@ -363,16 +367,6 @@ async def async_prepare_files_for_prompt(
                         "type": "image_url",
                         "image_url": {
                             "url": f"data:{mime_type};base64,{base64_file}",
-                        },
-                    }
-                )
-            elif mime_type.startswith("application/pdf"):
-                content.append(
-                    {
-                        "type": "file",
-                        "file": {
-                            "filename": file_path.name,
-                            "file_data": f"data:{mime_type};base64,{base64_file}",
                         },
                     }
                 )
