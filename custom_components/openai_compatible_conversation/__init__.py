@@ -2,18 +2,10 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from types import MappingProxyType
 
 import openai
-from openai.types.images_response import ImagesResponse
-from openai.types.responses import (
-    EasyInputMessageParam,
-    Response,
-    ResponseInputMessageContentListParam,
-    ResponseInputParam,
-    ResponseInputTextParam,
-)
+from openai.types.responses import Response
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry, ConfigSubentry
@@ -34,7 +26,6 @@ from homeassistant.helpers import (
     config_validation as cv,
     device_registry as dr,
     entity_registry as er,
-    issue_registry as ir,
     selector,
 )
 from homeassistant.helpers.httpx_client import get_async_client
@@ -43,7 +34,6 @@ from homeassistant.helpers.typing import ConfigType
 from .const import (
     CONF_API_BASE_URL,
     CONF_CHAT_MODEL,
-    CONF_FILENAMES,
     CONF_MAX_TOKENS,
     CONF_PROMPT,
     CONF_REASONING_EFFORT,
@@ -65,9 +55,7 @@ from .const import (
     RECOMMENDED_TOP_P,
     RECOMMENDED_TTS_OPTIONS,
 )
-from .entity import async_prepare_files_for_prompt
 
-SERVICE_GENERATE_IMAGE = "generate_image"
 SERVICE_GENERATE_CONTENT = "generate_content"
 
 PLATFORMS = (Platform.AI_TASK, Platform.CONVERSATION, Platform.STT, Platform.TTS)
@@ -80,75 +68,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up OpenAI Conversation."""
     await async_migrate_integration(hass)
 
-    async def render_image(call: ServiceCall) -> ServiceResponse:
-        """Render an image with dall-e."""
-        LOGGER.warning(
-            "Action '%s.%s' is deprecated and will be removed in the 2026.9.0 release. "
-            "Please use the 'ai_task.generate_image' action instead",
-            DOMAIN,
-            SERVICE_GENERATE_IMAGE,
-        )
-        ir.async_create_issue(
-            hass,
-            DOMAIN,
-            "deprecated_generate_image",
-            breaks_in_ha_version="2026.9.0",
-            is_fixable=False,
-            severity=ir.IssueSeverity.WARNING,
-            translation_key="deprecated_generate_image",
-        )
-
-        entry_id = call.data["config_entry"]
-        entry = hass.config_entries.async_get_entry(entry_id)
-
-        if entry is None or entry.domain != DOMAIN:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="invalid_config_entry",
-                translation_placeholders={"config_entry": entry_id},
-            )
-
-        client: openai.AsyncClient = entry.runtime_data
-
-        try:
-            response: ImagesResponse = await client.images.generate(
-                model="dall-e-3",
-                prompt=call.data[CONF_PROMPT],
-                size=call.data["size"],
-                quality=call.data["quality"],
-                style=call.data["style"],
-                response_format="url",
-                n=1,
-            )
-        except openai.AuthenticationError as err:
-            entry.async_start_reauth(hass)
-            raise HomeAssistantError("Authentication error") from err
-        except openai.OpenAIError as err:
-            raise HomeAssistantError(f"Error generating image: {err}") from err
-
-        if not response.data or not response.data[0].url:
-            raise HomeAssistantError("No image returned")
-
-        return response.data[0].model_dump(exclude={"b64_json"})
-
     async def send_prompt(call: ServiceCall) -> ServiceResponse:
-        """Send a prompt to ChatGPT and return the response."""
-        LOGGER.warning(
-            "Action '%s.%s' is deprecated and will be removed in the 2026.9.0 release. "
-            "Please use the 'ai_task.generate_data' action instead",
-            DOMAIN,
-            SERVICE_GENERATE_CONTENT,
-        )
-        ir.async_create_issue(
-            hass,
-            DOMAIN,
-            "deprecated_generate_content",
-            breaks_in_ha_version="2026.9.0",
-            is_fixable=False,
-            severity=ir.IssueSeverity.WARNING,
-            translation_key="deprecated_generate_content",
-        )
-
+        """Send a prompt to the API and return the response."""
         entry_id = call.data["config_entry"]
         entry = hass.config_entries.async_get_entry(entry_id)
 
@@ -176,32 +97,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         )
         client: openai.AsyncClient = entry.runtime_data
 
-        content: ResponseInputMessageContentListParam = [
-            ResponseInputTextParam(type="input_text", text=call.data[CONF_PROMPT])
-        ]
-
-        if filenames := call.data.get(CONF_FILENAMES):
-            for filename in filenames:
-                if not hass.config.is_allowed_path(filename):
-                    raise HomeAssistantError(
-                        f"Cannot read `{filename}`, no access to path; "
-                        "`allowlist_external_dirs` may need to be adjusted in "
-                        "`configuration.yaml`"
-                    )
-
-            content.extend(
-                await async_prepare_files_for_prompt(
-                    hass, [(Path(filename), None) for filename in filenames]
-                )
-            )
-
-        messages: ResponseInputParam = [
-            EasyInputMessageParam(type="message", role="user", content=content)
-        ]
-
         model_args = {
             "model": model,
-            "input": messages,
+            "input": [
+                {
+                    "type": "message",
+                    "role": "user",
+                    "content": call.data[CONF_PROMPT],
+                }
+            ],
             "max_output_tokens": conversation_subentry.data.get(
                 CONF_MAX_TOKENS, RECOMMENDED_MAX_TOKENS
             ),
@@ -213,21 +117,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             "store": False,
         }
 
-        if model.startswith("o"):
-            model_args["reasoning"] = {
-                "effort": conversation_subentry.data.get(
-                    CONF_REASONING_EFFORT, RECOMMENDED_REASONING_EFFORT
-                )
-            }
-
         try:
             response: Response = await client.responses.create(**model_args)
         except openai.AuthenticationError as err:
             entry.async_start_reauth(hass)
             raise HomeAssistantError("Authentication error") from err
         except openai.OpenAIError as err:
-            raise HomeAssistantError(f"Error generating content: {err}") from err
-        except FileNotFoundError as err:
             raise HomeAssistantError(f"Error generating content: {err}") from err
 
         return {"text": response.output_text}
@@ -244,31 +139,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     }
                 ),
                 vol.Required(CONF_PROMPT): cv.string,
-                vol.Optional(CONF_FILENAMES, default=[]): vol.All(
-                    cv.ensure_list, [cv.string]
-                ),
-            }
-        ),
-        supports_response=SupportsResponse.ONLY,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_GENERATE_IMAGE,
-        render_image,
-        schema=vol.Schema(
-            {
-                vol.Required("config_entry"): selector.ConfigEntrySelector(
-                    {
-                        "integration": DOMAIN,
-                    }
-                ),
-                vol.Required(CONF_PROMPT): cv.string,
-                vol.Optional("size", default="1024x1024"): vol.In(
-                    ("1024x1024", "1024x1792", "1792x1024")
-                ),
-                vol.Optional("quality", default="standard"): vol.In(("standard", "hd")),
-                vol.Optional("style", default="vivid"): vol.In(("vivid", "natural")),
             }
         ),
         supports_response=SupportsResponse.ONLY,
@@ -284,9 +154,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: OpenAIConfigEntry) -> bo
         api_key=entry.data[CONF_API_KEY],
         http_client=get_async_client(hass),
     )
-
-    # Cache current platform data which gets added to each request (caching done by library)
-    _ = await hass.async_add_executor_job(client.platform_headers)
 
     try:
         await hass.async_add_executor_job(client.with_options(timeout=10.0).models.list)
@@ -365,9 +232,6 @@ async def async_migrate_integration(hass: HomeAssistant) -> None:
                 entity_disabled_by is er.RegistryEntryDisabler.CONFIG_ENTRY
                 and not all_disabled
             ):
-                # Device and entity registries will set the disabled_by flag to None
-                # when moving a device or entity disabled by CONFIG_ENTRY to an enabled
-                # config entry, but we want to set it to DEVICE or USER instead,
                 entity_disabled_by = (
                     er.RegistryEntryDisabler.DEVICE
                     if device
@@ -382,9 +246,6 @@ async def async_migrate_integration(hass: HomeAssistant) -> None:
             )
 
         if device is not None:
-            # Device and entity registries will set the disabled_by flag to None
-            # when moving a device or entity disabled by CONFIG_ENTRY to an enabled
-            # config entry, but we want to set it to USER instead,
             device_disabled_by = device.disabled_by
             if (
                 device.disabled_by is dr.DeviceEntryDisabler.CONFIG_ENTRY
@@ -450,11 +311,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: OpenAIConfigEntry) -> 
         hass.config_entries.async_update_entry(entry, minor_version=3)
 
     if entry.version == 2 and entry.minor_version == 3:
-        # Fix migration where the disabled_by flag was not set correctly.
-        # We can currently only correct this for enabled config entries,
-        # because migration does not run for disabled config entries. This
-        # is asserted in tests, and if that behavior is changed, we should
-        # correct also disabled config entries.
         device_registry = dr.async_get(hass)
         entity_registry = er.async_get(hass)
         devices = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
@@ -462,9 +318,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: OpenAIConfigEntry) -> 
             entity_registry, entry.entry_id
         )
         if entry.disabled_by is None:
-            # If the config entry is not disabled, we need to set the disabled_by
-            # flag on devices to USER, and on entities to DEVICE, if they are set
-            # to CONFIG_ENTRY.
             for device in devices:
                 if device.disabled_by is not dr.DeviceEntryDisabler.CONFIG_ENTRY:
                     continue
