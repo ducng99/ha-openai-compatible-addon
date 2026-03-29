@@ -1,0 +1,182 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Service is already configured",
+      "reauth_successful": "Re-authentication was successful"
+    },
+    "error": {
+      "cannot_connect": "Unable to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "step": {
+      "reauth_confirm": {
+        "data": {
+          "api_base_url": "API base URL",
+          "api_key": "API Key"
+        },
+        "data_description": {
+          "api_base_url": "Base URL of the OpenAI-compatible API endpoint. Use the default for OpenAI, or enter a custom URL for compatible APIs like Ollama, vLLM, etc.",
+          "api_key": "Your API key."
+        },
+        "description": "Reauthentication required. Please enter your updated API key."
+      },
+      "user": {
+        "data": {
+          "api_base_url": "API base URL",
+          "api_key": "API Key"
+        },
+        "data_description": {
+          "api_base_url": "Base URL of the OpenAI-compatible API endpoint. Use the default for OpenAI, or enter a custom URL for compatible APIs like Ollama, vLLM, etc.",
+          "api_key": "Your API key."
+        },
+        "description": "Set up OpenAI-compatible conversation integration by providing your API base URL and API key."
+      }
+    }
+  },
+  "config_subentries": {
+    "ai_task_data": {
+      "abort": {
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
+        "reconfigure_successful": "Reconfiguration was successful"
+      },
+      "entry_type": "AI task",
+      "initiate_flow": {
+        "reconfigure": "Reconfigure AI task",
+        "user": "Add AI task"
+      },
+      "step": {
+        "advanced": {
+          "data": {
+            "chat_model": "Model",
+            "max_tokens": "Maximum tokens to return in response",
+            "reasoning_effort": "Reasoning effort",
+            "temperature": "Temperature",
+            "top_p": "Top P"
+          },
+          "title": "Advanced settings"
+        },
+        "init": {
+          "data": {
+            "name": "Name",
+            "recommended": "Recommended model settings"
+          }
+        }
+      }
+    },
+    "conversation": {
+      "abort": {
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
+        "reconfigure_successful": "Reconfiguration was successful"
+      },
+      "entry_type": "Conversation agent",
+      "initiate_flow": {
+        "reconfigure": "Reconfigure conversation agent",
+        "user": "Add conversation agent"
+      },
+      "step": {
+        "advanced": {
+          "data": {
+            "chat_model": "Model",
+            "max_tokens": "Maximum tokens to return in response",
+            "reasoning_effort": "Reasoning effort",
+            "temperature": "Temperature",
+            "top_p": "Top P"
+          },
+          "title": "Advanced settings"
+        },
+        "init": {
+          "data": {
+            "llm_hass_api": "Control Home Assistant",
+            "name": "Name",
+            "prompt": "Prompt",
+            "recommended": "Recommended model settings"
+          },
+          "data_description": {
+            "prompt": "Instruct how the LLM should respond. This can be a template."
+          }
+        }
+      }
+    },
+    "stt": {
+      "abort": {
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
+        "reconfigure_successful": "Reconfiguration was successful"
+      },
+      "entry_type": "Speech-to-text",
+      "initiate_flow": {
+        "reconfigure": "Reconfigure speech-to-text service",
+        "user": "Add speech-to-text service"
+      },
+      "step": {
+        "init": {
+          "data": {
+            "chat_model": "Model",
+            "name": "Name",
+            "prompt": "Prompt"
+          },
+          "data_description": {
+            "chat_model": "The model to use to transcribe speech.",
+            "prompt": "Use this prompt to improve the quality of the transcripts. Translate to the pipeline language for best results. See the documentation for more details."
+          }
+        }
+      }
+    },
+    "tts": {
+      "abort": {
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
+        "reconfigure_successful": "Reconfiguration was successful"
+      },
+      "entry_type": "Text-to-speech",
+      "initiate_flow": {
+        "reconfigure": "Reconfigure text-to-speech service",
+        "user": "Add text-to-speech service"
+      },
+      "step": {
+        "init": {
+          "data": {
+            "chat_model": "Model",
+            "name": "Name",
+            "prompt": "Prompt",
+            "tts_speed": "Speed"
+          },
+          "data_description": {
+            "chat_model": "The model to use for text-to-speech.",
+            "prompt": "Control aspects of speech, including accent, emotional range, intonation, impressions, speed of speech, tone, whispering, and more",
+            "tts_speed": "Speed of the generated speech"
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_config_entry": {
+      "message": "Invalid config entry provided. Got {config_entry}"
+    }
+  },
+  "selector": {
+    "reasoning_effort": {
+      "options": {
+        "high": "High",
+        "low": "Low",
+        "medium": "Medium"
+      }
+    }
+  },
+  "services": {
+    "generate_content": {
+      "description": "Sends a conversational query to the API and returns the response",
+      "fields": {
+        "config_entry": {
+          "description": "The config entry to use for this action",
+          "name": "Config entry"
+        },
+        "prompt": {
+          "description": "The prompt to send",
+          "name": "Prompt"
+        }
+      },
+      "name": "Generate content"
+    }
+  }
+}
