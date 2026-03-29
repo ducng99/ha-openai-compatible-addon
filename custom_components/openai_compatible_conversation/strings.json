@@ -12,19 +12,20 @@
     "step": {
       "reauth_confirm": {
         "data": {
-          "api_base_url": "[%key:component::openai_conversation::config::step::user::data::api_base_url%]",
+          "api_base_url": "API base URL",
           "api_key": "[%key:common::config_flow::data::api_key%]"
         },
         "data_description": {
-          "api_base_url": "[%key:component::openai_conversation::config::step::user::data_description::api_base_url%]",
-          "api_key": "[%key:component::openai_conversation::config::step::user::data_description::api_key%]"
+          "api_base_url": "Base URL of the OpenAI-compatible API endpoint.",
+          "api_key": "Your API key."
         },
         "description": "Reauthentication required. Please enter your updated API key."
       },
       "user": {
         "data": {
           "api_base_url": "API base URL",
-          "api_key": "[%key:common::config_flow::data::api_key%]"
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "name": "[%key:common::config_flow::data::name%]"
         },
         "data_description": {
           "api_base_url": "Base URL of the OpenAI-compatible API endpoint. Use the default for OpenAI, or enter a custom URL for compatible APIs like Ollama, vLLM, etc.",
@@ -37,7 +38,7 @@
   "config_subentries": {
     "ai_task_data": {
       "abort": {
-        "entry_not_loaded": "[%key:component::openai_conversation::config_subentries::conversation::abort::entry_not_loaded%]",
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
         "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
       },
       "entry_type": "AI task",
@@ -48,18 +49,17 @@
       "step": {
         "advanced": {
           "data": {
-            "chat_model": "[%key:common::generic::model%]",
-            "max_tokens": "[%key:component::openai_conversation::config_subentries::conversation::step::advanced::data::max_tokens%]",
-            "reasoning_effort": "[%key:component::openai_conversation::config_subentries::conversation::step::advanced::data::reasoning_effort%]",
-            "temperature": "[%key:component::openai_conversation::config_subentries::conversation::step::advanced::data::temperature%]",
-            "top_p": "[%key:component::openai_conversation::config_subentries::conversation::step::advanced::data::top_p%]"
+            "max_tokens": "Maximum tokens to return in response",
+            "reasoning_effort": "Reasoning effort",
+            "temperature": "Temperature",
+            "top_p": "Top P"
           },
-          "title": "[%key:component::openai_conversation::config_subentries::conversation::step::advanced::title%]"
+          "title": "Advanced settings"
         },
         "init": {
           "data": {
-            "name": "[%key:common::config_flow::data::name%]",
-            "recommended": "[%key:component::openai_conversation::config_subentries::conversation::step::init::data::recommended%]"
+            "chat_model": "[%key:common::generic::model%]",
+            "name": "[%key:common::config_flow::data::name%]"
           }
         }
       }
@@ -77,7 +77,6 @@
       "step": {
         "advanced": {
           "data": {
-            "chat_model": "[%key:common::generic::model%]",
             "max_tokens": "Maximum tokens to return in response",
             "reasoning_effort": "Reasoning effort",
             "temperature": "Temperature",
@@ -87,10 +86,10 @@
         },
         "init": {
           "data": {
+            "chat_model": "[%key:common::generic::model%]",
             "llm_hass_api": "[%key:common::config_flow::data::llm_hass_api%]",
             "name": "[%key:common::config_flow::data::name%]",
-            "prompt": "[%key:common::config_flow::data::prompt%]",
-            "recommended": "Recommended model settings"
+            "prompt": "[%key:common::config_flow::data::prompt%]"
           },
           "data_description": {
             "prompt": "Instruct how the LLM should respond. This can be a template."
@@ -100,7 +99,7 @@
     },
     "stt": {
       "abort": {
-        "entry_not_loaded": "[%key:component::openai_conversation::config_subentries::conversation::abort::entry_not_loaded%]",
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
         "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
       },
       "entry_type": "Speech-to-text",
@@ -124,7 +123,7 @@
     },
     "tts": {
       "abort": {
-        "entry_not_loaded": "[%key:component::openai_conversation::config_subentries::conversation::abort::entry_not_loaded%]",
+        "entry_not_loaded": "Cannot add things while the configuration is disabled.",
         "reconfigure_successful": "[%key:common::config_flow::abort::reconfigure_successful%]"
       },
       "entry_type": "Text-to-speech",

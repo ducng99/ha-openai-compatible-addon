@@ -46,7 +46,6 @@ from .const import (
     CONF_MAX_TOKENS,
     CONF_PROMPT,
     CONF_REASONING_EFFORT,
-    CONF_RECOMMENDED,
     CONF_TEMPERATURE,
     CONF_TOP_P,
     CONF_TTS_SPEED,
@@ -58,7 +57,6 @@ from .const import (
     DOMAIN,
     RECOMMENDED_AI_TASK_OPTIONS,
     RECOMMENDED_API_BASE_URL,
-    RECOMMENDED_CHAT_MODEL,
     RECOMMENDED_CONVERSATION_OPTIONS,
     RECOMMENDED_MAX_TOKENS,
     RECOMMENDED_REASONING_EFFORT,
@@ -74,6 +72,7 @@ _LOGGER = logging.getLogger(__name__)
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
+        vol.Required(CONF_NAME, default="OpenAI Compatible"): str,
         vol.Required(CONF_API_BASE_URL, default=RECOMMENDED_API_BASE_URL): str,
         vol.Required(CONF_API_KEY): str,
     }
@@ -118,39 +117,14 @@ class OpenAIConfigFlow(ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
+                title = user_input.pop(CONF_NAME)
                 if self.source == SOURCE_REAUTH:
                     return self.async_update_reload_and_abort(
                         self._get_reauth_entry(), data_updates=user_input
                     )
                 return self.async_create_entry(
-                    title="OpenAI Compatible",
+                    title=title,
                     data=user_input,
-                    subentries=[
-                        {
-                            "subentry_type": "conversation",
-                            "data": RECOMMENDED_CONVERSATION_OPTIONS,
-                            "title": DEFAULT_CONVERSATION_NAME,
-                            "unique_id": None,
-                        },
-                        {
-                            "subentry_type": "ai_task_data",
-                            "data": RECOMMENDED_AI_TASK_OPTIONS,
-                            "title": DEFAULT_AI_TASK_NAME,
-                            "unique_id": None,
-                        },
-                        {
-                            "subentry_type": "stt",
-                            "data": RECOMMENDED_STT_OPTIONS,
-                            "title": DEFAULT_STT_NAME,
-                            "unique_id": None,
-                        },
-                        {
-                            "subentry_type": "tts",
-                            "data": RECOMMENDED_TTS_OPTIONS,
-                            "title": DEFAULT_TTS_NAME,
-                            "unique_id": None,
-                        },
-                    ],
                 )
 
         return self.async_show_form(
@@ -270,29 +244,12 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
                 }
             )
 
-        step_schema[
-            vol.Required(CONF_RECOMMENDED, default=options.get(CONF_RECOMMENDED, False))
-        ] = bool
+        step_schema[vol.Required(CONF_CHAT_MODEL)] = str
 
         if user_input is not None:
             if not user_input.get(CONF_LLM_HASS_API):
                 user_input.pop(CONF_LLM_HASS_API, None)
-
-            if user_input[CONF_RECOMMENDED]:
-                if self._is_new:
-                    return self.async_create_entry(
-                        title=user_input.pop(CONF_NAME),
-                        data=user_input,
-                    )
-                return self.async_update_and_abort(
-                    self._get_entry(),
-                    self._get_reconfigure_subentry(),
-                    data=user_input,
-                )
-
             options.update(user_input)
-            if CONF_LLM_HASS_API in options and CONF_LLM_HASS_API not in user_input:
-                options.pop(CONF_LLM_HASS_API)
             return await self.async_step_advanced()
 
         return self.async_show_form(
@@ -309,10 +266,6 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
         options = self.options
 
         step_schema: VolDictType = {
-            vol.Optional(
-                CONF_CHAT_MODEL,
-                default=RECOMMENDED_CHAT_MODEL,
-            ): str,
             vol.Optional(
                 CONF_MAX_TOKENS,
                 default=RECOMMENDED_MAX_TOKENS,
