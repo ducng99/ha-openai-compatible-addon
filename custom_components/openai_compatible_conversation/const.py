@@ -25,6 +25,7 @@ CONF_REASONING_EFFORT = "reasoning_effort"
 CONF_TEMPERATURE = "temperature"
 CONF_TOP_P = "top_p"
 CONF_TTS_SPEED = "tts_speed"
+CONF_TTS_VOICES = "tts_voices"
 
 RECOMMENDED_CHAT_MODEL = "gpt-4o-mini"
 RECOMMENDED_MAX_TOKENS = 3000
@@ -33,6 +34,22 @@ RECOMMENDED_STT_MODEL = "whisper-1"
 RECOMMENDED_TEMPERATURE = 1.0
 RECOMMENDED_TOP_P = 1.0
 RECOMMENDED_TTS_SPEED = 1.0
+
+OPENAI_TTS_VOICES = (
+    "alloy",
+    "ash",
+    "ballad",
+    "cedar",
+    "coral",
+    "echo",
+    "fable",
+    "marin",
+    "nova",
+    "onyx",
+    "sage",
+    "shimmer",
+    "verse",
+)
 
 DEFAULT_STT_PROMPT = (
     "The following conversation is a smart home user talking to Home Assistant."

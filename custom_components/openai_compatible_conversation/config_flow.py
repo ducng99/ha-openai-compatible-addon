@@ -49,12 +49,14 @@ from .const import (
     CONF_TEMPERATURE,
     CONF_TOP_P,
     CONF_TTS_SPEED,
+    CONF_TTS_VOICES,
     DEFAULT_AI_TASK_NAME,
     DEFAULT_CONVERSATION_NAME,
     DEFAULT_STT_NAME,
     DEFAULT_STT_PROMPT,
     DEFAULT_TTS_NAME,
     DOMAIN,
+    OPENAI_TTS_VOICES,
     RECOMMENDED_AI_TASK_OPTIONS,
     RECOMMENDED_API_BASE_URL,
     RECOMMENDED_CONVERSATION_OPTIONS,
@@ -436,6 +438,20 @@ class OpenAISubentryTTSFlowHandler(ConfigSubentryFlow):
                     CONF_CHAT_MODEL,
                     default=options.get(CONF_CHAT_MODEL, "tts-1"),
                 ): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT)),
+                vol.Optional(
+                    CONF_TTS_VOICES,
+                    default=options.get(CONF_TTS_VOICES, ""),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            SelectOptionDict(value=v, label=v.title())
+                            for v in OPENAI_TTS_VOICES
+                        ],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        custom_value=True,
+                        translation_key=CONF_TTS_VOICES,
+                    )
+                ),
                 vol.Optional(
                     CONF_PROMPT,
                     description={"suggested_value": options.get(CONF_PROMPT, "")},

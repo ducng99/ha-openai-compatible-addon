@@ -21,7 +21,14 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import CONF_CHAT_MODEL, CONF_PROMPT, CONF_TTS_SPEED, RECOMMENDED_TTS_SPEED
+from .const import (
+    CONF_CHAT_MODEL,
+    CONF_PROMPT,
+    CONF_TTS_SPEED,
+    CONF_TTS_VOICES,
+    OPENAI_TTS_VOICES,
+    RECOMMENDED_TTS_SPEED,
+)
 from .entity import OpenAIBaseLLMEntity
 
 if TYPE_CHECKING:
@@ -113,24 +120,7 @@ class OpenAITTSEntity(TextToSpeechEntity, OpenAIBaseLLMEntity):
     # The models detect the input language automatically.
     _attr_default_language = "en-US"
 
-    _supported_voices = [
-        Voice(voice.lower(), voice)
-        for voice in (
-            "Marin",
-            "Cedar",
-            "Alloy",
-            "Ash",
-            "Ballad",
-            "Coral",
-            "Echo",
-            "Fable",
-            "Nova",
-            "Onyx",
-            "Sage",
-            "Shimmer",
-            "Verse",
-        )
-    ]
+    _supported_voices = [Voice(voice, voice.title()) for voice in OPENAI_TTS_VOICES]
 
     _supported_formats = ["mp3", "opus", "aac", "flac", "wav", "pcm"]
 
@@ -144,13 +134,15 @@ class OpenAITTSEntity(TextToSpeechEntity, OpenAIBaseLLMEntity):
     @callback
     def async_get_supported_voices(self, language: str) -> list[Voice]:
         """Return a list of supported voices for a language."""
+        if custom_voice := self.subentry.data.get(CONF_TTS_VOICES):
+            return [Voice(custom_voice.lower(), custom_voice)]
         return self._supported_voices
 
     @cached_property
     def default_options(self) -> Mapping[str, Any]:
         """Return a mapping with the default options."""
         return {
-            ATTR_VOICE: self._supported_voices[0].voice_id,
+            ATTR_VOICE: self.async_get_supported_voices("")[0].voice_id,
             ATTR_PREFERRED_FORMAT: "mp3",
         }
 
