@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import logging
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
-
-from openai import OpenAIError
-from propcache.api import cached_property
 
 from homeassistant.components.tts import (
     ATTR_PREFERRED_FORMAT,
@@ -20,6 +17,8 @@ from homeassistant.config_entries import ConfigSubentry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from openai import OpenAIError
+from propcache.api import cached_property
 
 from .const import (
     CONF_CHAT_MODEL,
@@ -122,7 +121,7 @@ class OpenAITTSEntity(TextToSpeechEntity, OpenAIBaseLLMEntity):
 
     _supported_voices = [Voice(voice, voice.title()) for voice in OPENAI_TTS_VOICES]
 
-    _supported_formats = ["mp3", "opus", "aac", "flac", "wav", "pcm"]
+    _supported_formats = ["wav", "mp3", "opus", "aac", "flac", "pcm"]
 
     _attr_has_entity_name = False
 
@@ -143,7 +142,7 @@ class OpenAITTSEntity(TextToSpeechEntity, OpenAIBaseLLMEntity):
         """Return a mapping with the default options."""
         return {
             ATTR_VOICE: self.async_get_supported_voices("")[0].voice_id,
-            ATTR_PREFERRED_FORMAT: "mp3",
+            ATTR_PREFERRED_FORMAT: self._supported_formats[0],
         }
 
     async def async_get_tts_audio(
@@ -162,7 +161,7 @@ class OpenAITTSEntity(TextToSpeechEntity, OpenAIBaseLLMEntity):
             elif response_format == "raw":
                 response_format = "pcm"
             else:
-                response_format = self.default_options[ATTR_PREFERRED_FORMAT]
+                response_format = self.default_options()[ATTR_PREFERRED_FORMAT]
 
         try:
             async with client.audio.speech.with_streaming_response.create(
