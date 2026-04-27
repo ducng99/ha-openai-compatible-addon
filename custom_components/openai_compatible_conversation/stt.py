@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import base64
 from collections.abc import AsyncIterable
 import io
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import wave
 
 from openai import OpenAIError
@@ -17,6 +18,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import (
     CONF_CHAT_MODEL,
     CONF_PROMPT,
+    CONF_STT_USE_CHAT_COMPLETIONS,
     DEFAULT_STT_PROMPT,
     RECOMMENDED_STT_MODEL,
 )
@@ -177,20 +179,44 @@ class OpenAISTTEntity(stt.SpeechToTextEntity, OpenAIBaseLLMEntity):
         client = self.entry.runtime_data
 
         try:
-            response = await client.audio.transcriptions.create(
-                model=options.get(CONF_CHAT_MODEL, RECOMMENDED_STT_MODEL),
-                file=(f"a.{metadata.format.value}", audio_data),
-                response_format="json",
-                language=metadata.language.split("-")[0],
-                prompt=options.get(CONF_PROMPT, DEFAULT_STT_PROMPT),
-            )
+            if options.get(CONF_STT_USE_CHAT_COMPLETIONS):
+                b64_audio = base64.b64encode(audio_data).decode("utf-8")
+                content: list[dict[str, Any]] = []
+                prompt = options.get(CONF_PROMPT, DEFAULT_STT_PROMPT)
+                if prompt:
+                    content.append({"type": "text", "text": prompt})
+                content.append(
+                    {
+                        "type": "input_audio",
+                        "input_audio": {
+                            "data": b64_audio,
+                            "format": metadata.format.value,
+                        },
+                    }
+                )
+                response = await client.chat.completions.create(
+                    model=options.get(CONF_CHAT_MODEL, RECOMMENDED_STT_MODEL),
+                    messages=[{"role": "user", "content": content}],
+                )
+                if response.choices and response.choices[0].message.content:
+                    return stt.SpeechResult(
+                        response.choices[0].message.content,
+                        stt.SpeechResultState.SUCCESS,
+                    )
+            else:
+                response = await client.audio.transcriptions.create(
+                    model=options.get(CONF_CHAT_MODEL, RECOMMENDED_STT_MODEL),
+                    file=(f"a.{metadata.format.value}", audio_data),
+                    response_format="json",
+                    language=metadata.language.split("-")[0],
+                    prompt=options.get(CONF_PROMPT, DEFAULT_STT_PROMPT),
+                )
+                if response.text:
+                    return stt.SpeechResult(
+                        response.text,
+                        stt.SpeechResultState.SUCCESS,
+                    )
         except OpenAIError:
             _LOGGER.exception("Error during STT")
-        else:
-            if response.text:
-                return stt.SpeechResult(
-                    response.text,
-                    stt.SpeechResultState.SUCCESS,
-                )
 
         return stt.SpeechResult(None, stt.SpeechResultState.ERROR)

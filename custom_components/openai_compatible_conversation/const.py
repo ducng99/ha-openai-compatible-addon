@@ -24,6 +24,7 @@ CONF_PROMPT = "prompt"
 CONF_REASONING_EFFORT = "reasoning_effort"
 CONF_TEMPERATURE = "temperature"
 CONF_TOP_P = "top_p"
+CONF_STT_USE_CHAT_COMPLETIONS = "stt_use_chat_completions"
 CONF_TTS_SPEED = "tts_speed"
 CONF_TTS_VOICES = "tts_voices"
 

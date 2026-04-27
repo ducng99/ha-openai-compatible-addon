@@ -112,7 +112,8 @@
           "data": {
             "chat_model": "Model",
             "name": "Name",
-            "prompt": "Prompt"
+            "prompt": "Prompt",
+            "stt_use_chat_completions": "Use chat completions API"
           },
           "data_description": {
             "chat_model": "The model to use to transcribe speech.",

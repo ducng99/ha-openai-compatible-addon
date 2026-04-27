@@ -27,6 +27,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import llm
 from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     NumberSelector,
     NumberSelectorConfig,
     SelectOptionDict,
@@ -46,6 +47,7 @@ from .const import (
     CONF_MAX_TOKENS,
     CONF_PROMPT,
     CONF_REASONING_EFFORT,
+    CONF_STT_USE_CHAT_COMPLETIONS,
     CONF_TEMPERATURE,
     CONF_TOP_P,
     CONF_TTS_SPEED,
@@ -366,6 +368,10 @@ class OpenAISubentrySTTFlowHandler(ConfigSubentryFlow):
                 vol.Optional(
                     CONF_CHAT_MODEL, default=RECOMMENDED_STT_MODEL
                 ): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT)),
+                vol.Optional(
+                    CONF_STT_USE_CHAT_COMPLETIONS,
+                    default=options.get(CONF_STT_USE_CHAT_COMPLETIONS, False),
+                ): BooleanSelector(),
             }
         )
 
