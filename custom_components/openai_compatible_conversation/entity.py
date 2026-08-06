@@ -38,11 +38,7 @@ from .const import (
     DOMAIN,
     LOGGER,
     RECOMMENDED_CHAT_MODEL,
-    RECOMMENDED_MAX_TOKENS,
-    RECOMMENDED_REASONING_EFFORT,
     RECOMMENDED_STT_MODEL,
-    RECOMMENDED_TEMPERATURE,
-    RECOMMENDED_TOP_P,
 )
 
 if TYPE_CHECKING:
@@ -253,18 +249,21 @@ class OpenAIBaseLLMEntity(Entity):
         model_args: dict[str, Any] = {
             "model": options.get(CONF_CHAT_MODEL, RECOMMENDED_CHAT_MODEL),
             "messages": messages,
-            "max_tokens": options.get(CONF_MAX_TOKENS, RECOMMENDED_MAX_TOKENS),
-            "top_p": options.get(CONF_TOP_P, RECOMMENDED_TOP_P),
-            "temperature": options.get(CONF_TEMPERATURE, RECOMMENDED_TEMPERATURE),
             "user": chat_log.conversation_id,
             "stream": True,
             "stream_options": {"include_usage": True},
         }
 
+        # Only include fields that are configured, so that unset
+        # options use the API defaults.
+        if CONF_MAX_TOKENS in options:
+            model_args["max_tokens"] = options[CONF_MAX_TOKENS]
+        if CONF_TOP_P in options:
+            model_args["top_p"] = options[CONF_TOP_P]
+        if CONF_TEMPERATURE in options:
+            model_args["temperature"] = options[CONF_TEMPERATURE]
         if options.get(CONF_REASONING_EFFORT):
-            model_args["reasoning_effort"] = options.get(
-                CONF_REASONING_EFFORT, RECOMMENDED_REASONING_EFFORT
-            )
+            model_args["reasoning_effort"] = options[CONF_REASONING_EFFORT]
 
         tools: list[ChatCompletionToolParam] = []
         if chat_log.llm_api:

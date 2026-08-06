@@ -52,10 +52,7 @@ from .const import (
     RECOMMENDED_AI_TASK_OPTIONS,
     RECOMMENDED_API_BASE_URL,
     RECOMMENDED_CHAT_MODEL,
-    RECOMMENDED_MAX_TOKENS,
     RECOMMENDED_STT_OPTIONS,
-    RECOMMENDED_TEMPERATURE,
-    RECOMMENDED_TOP_P,
     RECOMMENDED_TTS_OPTIONS,
 )
 
@@ -108,15 +105,17 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     "content": call.data[CONF_PROMPT],
                 }
             ],
-            "max_tokens": conversation_subentry.data.get(
-                CONF_MAX_TOKENS, RECOMMENDED_MAX_TOKENS
-            ),
-            "top_p": conversation_subentry.data.get(CONF_TOP_P, RECOMMENDED_TOP_P),
-            "temperature": conversation_subentry.data.get(
-                CONF_TEMPERATURE, RECOMMENDED_TEMPERATURE
-            ),
             "user": call.context.user_id,
         }
+
+        # Only include fields that are configured, so that unset
+        # options use the API defaults.
+        if CONF_MAX_TOKENS in conversation_subentry.data:
+            model_args["max_tokens"] = conversation_subentry.data[CONF_MAX_TOKENS]
+        if CONF_TOP_P in conversation_subentry.data:
+            model_args["top_p"] = conversation_subentry.data[CONF_TOP_P]
+        if CONF_TEMPERATURE in conversation_subentry.data:
+            model_args["temperature"] = conversation_subentry.data[CONF_TEMPERATURE]
 
         try:
             response: ChatCompletion = await client.chat.completions.create(
