@@ -8,5 +8,5 @@
   "dependencies": ["conversation"],
   "documentation": "https://www.home-assistant.io/integrations/openai_conversation",
   "integration_type": "service",
-  "requirements": ["openai==2.21.0"]
+  "requirements": ["openai>=2.21.0"]
 }
