@@ -318,6 +318,7 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
             ):
                 if key in user_input and user_input[key] in (None, ""):
                     user_input.pop(key)
+                    options.pop(key, None)
             options.update(user_input)
             if self._is_new:
                 return self.async_create_entry(
