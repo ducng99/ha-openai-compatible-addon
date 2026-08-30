@@ -159,7 +159,11 @@
       "options": {
         "high": "High",
         "low": "Low",
-        "medium": "Medium"
+        "max": "Max",
+        "medium": "Medium",
+        "minimal": "Minimal",
+        "none": "Off",
+        "xhigh": "Extra high"
       }
     }
   },

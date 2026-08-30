@@ -62,12 +62,8 @@ from .const import (
     RECOMMENDED_AI_TASK_OPTIONS,
     RECOMMENDED_API_BASE_URL,
     RECOMMENDED_CONVERSATION_OPTIONS,
-    RECOMMENDED_MAX_TOKENS,
-    RECOMMENDED_REASONING_EFFORT,
     RECOMMENDED_STT_MODEL,
     RECOMMENDED_STT_OPTIONS,
-    RECOMMENDED_TEMPERATURE,
-    RECOMMENDED_TOP_P,
     RECOMMENDED_TTS_OPTIONS,
     RECOMMENDED_TTS_SPEED,
 )
@@ -273,35 +269,37 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
             vol.Optional(
                 CONF_MAX_TOKENS,
                 description={
-                    "suggested_value": options.get(
-                        CONF_MAX_TOKENS, RECOMMENDED_MAX_TOKENS
-                    )
+                    "suggested_value": options.get(CONF_MAX_TOKENS)
                 },
             ): int,
             vol.Optional(
                 CONF_TOP_P,
                 description={
-                    "suggested_value": options.get(CONF_TOP_P, RECOMMENDED_TOP_P)
+                    "suggested_value": options.get(CONF_TOP_P)
                 },
             ): NumberSelector(NumberSelectorConfig(min=0, max=1, step=0.05)),
             vol.Optional(
                 CONF_TEMPERATURE,
                 description={
-                    "suggested_value": options.get(
-                        CONF_TEMPERATURE, RECOMMENDED_TEMPERATURE
-                    )
+                    "suggested_value": options.get(CONF_TEMPERATURE)
                 },
             ): NumberSelector(NumberSelectorConfig(min=0, max=2, step=0.05)),
             vol.Optional(
                 CONF_REASONING_EFFORT,
                 description={
-                    "suggested_value": options.get(
-                        CONF_REASONING_EFFORT, RECOMMENDED_REASONING_EFFORT
-                    )
+                    "suggested_value": options.get(CONF_REASONING_EFFORT)
                 },
             ): SelectSelector(
                 SelectSelectorConfig(
-                    options=["low", "medium", "high"],
+                    options=[
+                        "none",
+                        "minimal",
+                        "low",
+                        "medium",
+                        "high",
+                        "xhigh",
+                        "max",
+                    ],
                     translation_key=CONF_REASONING_EFFORT,
                     mode=SelectSelectorMode.DROPDOWN,
                 )
@@ -310,12 +308,13 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
 
         if user_input is not None:
             # Remove fields left empty so that they are not included
-            # in the request sent to the API.
+            # in the request sent to the API. Note: the "none" value
+            # for reasoning_effort is intentional (disables thinking)
+            # and is preserved here.
             for key in (
                 CONF_MAX_TOKENS,
                 CONF_TOP_P,
                 CONF_TEMPERATURE,
-                CONF_REASONING_EFFORT,
             ):
                 if key in user_input and user_input[key] in (None, ""):
                     user_input.pop(key)

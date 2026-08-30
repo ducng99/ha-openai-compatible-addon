@@ -262,8 +262,23 @@ class OpenAIBaseLLMEntity(Entity):
             model_args["top_p"] = options[CONF_TOP_P]
         if CONF_TEMPERATURE in options:
             model_args["temperature"] = options[CONF_TEMPERATURE]
-        if options.get(CONF_REASONING_EFFORT):
-            model_args["reasoning_effort"] = options[CONF_REASONING_EFFORT]
+
+        # Reasoning effort:
+        # - not configured: send nothing (let the API/model decide).
+        # - any other value (none/minimal/low/medium/high/xhigh/max):
+        #   send `reasoning_effort` so the provider can pick the right
+        #   level (or disable thinking, in the case of "none").
+        reasoning_effort = options.get(CONF_REASONING_EFFORT)
+        if reasoning_effort in (
+            "none",
+            "minimal",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max",
+        ):
+            model_args["reasoning_effort"] = reasoning_effort
 
         tools: list[ChatCompletionToolParam] = []
         if chat_log.llm_api:

@@ -158,7 +158,11 @@
       "options": {
         "high": "[%key:common::state::high%]",
         "low": "[%key:common::state::low%]",
-        "medium": "[%key:common::state::medium%]"
+        "max": "Max",
+        "medium": "[%key:common::state::medium%]",
+        "minimal": "Minimal",
+        "none": "Off",
+        "xhigh": "Extra high"
       }
     }
   },
