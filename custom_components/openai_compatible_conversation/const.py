@@ -1,9 +1,11 @@
 """Constants for the OpenAI Conversation integration."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
-from homeassistant.const import CONF_LLM_HASS_API
+from homeassistant.const import CONF_LLM_HASS_API, CONF_PROMPT
 from homeassistant.helpers import llm
 
 DOMAIN = "openai_compatible_conversation"
@@ -20,7 +22,6 @@ DEFAULT_NAME = "OpenAI Conversation"
 
 CONF_CHAT_MODEL = "chat_model"
 CONF_MAX_TOKENS = "max_tokens"
-CONF_PROMPT = "prompt"
 CONF_REASONING_EFFORT = "reasoning_effort"
 CONF_TEMPERATURE = "temperature"
 CONF_TOP_P = "top_p"

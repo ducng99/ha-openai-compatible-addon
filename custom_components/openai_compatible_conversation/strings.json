@@ -47,14 +47,14 @@
         "user": "Add AI task"
       },
       "step": {
-        "advanced": {
+        "additional": {
           "data": {
             "max_tokens": "Maximum tokens to return in response",
             "reasoning_effort": "Reasoning effort",
             "temperature": "Temperature",
             "top_p": "Top P"
           },
-          "title": "Advanced settings"
+          "title": "Additional settings"
         },
         "init": {
           "data": {
@@ -75,14 +75,14 @@
         "user": "Add conversation agent"
       },
       "step": {
-        "advanced": {
+        "additional": {
           "data": {
             "max_tokens": "Maximum tokens to return in response",
             "reasoning_effort": "Reasoning effort",
             "temperature": "Temperature",
             "top_p": "Top P"
           },
-          "title": "Advanced settings"
+          "title": "Additional settings"
         },
         "init": {
           "data": {

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from json import JSONDecodeError
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from homeassistant.components import ai_task, conversation
 from homeassistant.core import HomeAssistant
@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from . import OpenAIConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
+
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
@@ -52,6 +54,7 @@ class OpenAITaskEntity(
             | ai_task.AITaskEntityFeature.SUPPORT_ATTACHMENTS
         )
 
+    @override
     async def _async_generate_data(
         self,
         task: ai_task.GenDataTask,

@@ -18,7 +18,7 @@ from openai.types.chat import (
     ChatCompletionToolParam,
 )
 import voluptuous as vol
-from voluptuous_openapi import convert
+from probatio import to_openapi
 
 from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigSubentry
@@ -53,7 +53,7 @@ def _format_structured_output(
     schema: vol.Schema, llm_api: llm.APIInstance | None
 ) -> dict[str, Any]:
     """Format the schema to be compatible with OpenAI API."""
-    return convert(
+    return to_openapi(
         schema,
         custom_serializer=(
             llm_api.custom_serializer if llm_api else llm.selector_serializer
@@ -69,7 +69,9 @@ def _format_tool(
         type="function",
         function={
             "name": tool.name,
-            "parameters": convert(tool.parameters, custom_serializer=custom_serializer),
+            "parameters": to_openapi(
+                tool.parameters, custom_serializer=custom_serializer
+            ),
             "description": tool.description,
         },
     )

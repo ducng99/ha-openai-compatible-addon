@@ -22,6 +22,7 @@ from homeassistant.const import (
     CONF_API_KEY,
     CONF_LLM_HASS_API,
     CONF_NAME,
+    CONF_PROMPT,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import llm
@@ -45,7 +46,6 @@ from .const import (
     CONF_API_BASE_URL,
     CONF_CHAT_MODEL,
     CONF_MAX_TOKENS,
-    CONF_PROMPT,
     CONF_REASONING_EFFORT,
     CONF_STT_USE_CHAT_COMPLETIONS,
     CONF_TEMPERATURE,
@@ -198,7 +198,7 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
     ) -> SubentryFlowResult:
         """Manage initial options."""
         # abort if entry is not loaded
-        if self._get_entry().state != ConfigEntryState.LOADED:
+        if self._get_entry().state is not ConfigEntryState.LOADED:
             return self.async_abort(reason="entry_not_loaded")
 
         options = self.options
@@ -247,10 +247,10 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
         step_schema[vol.Required(CONF_CHAT_MODEL)] = str
 
         if user_input is not None:
-            if not user_input.get(CONF_LLM_HASS_API):
+            if user_input.get(CONF_LLM_HASS_API) is None:
                 user_input.pop(CONF_LLM_HASS_API, None)
             options.update(user_input)
-            return await self.async_step_advanced()
+            return await self.async_step_additional()
 
         return self.async_show_form(
             step_id="init",
@@ -259,10 +259,10 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
             ),
         )
 
-    async def async_step_advanced(
+    async def async_step_additional(
         self, user_input: dict[str, Any] | None = None
     ) -> SubentryFlowResult:
-        """Manage advanced options."""
+        """Manage additional options."""
         options = self.options
 
         step_schema: VolDictType = {
@@ -332,7 +332,7 @@ class OpenAISubentryFlowHandler(ConfigSubentryFlow):
             )
 
         return self.async_show_form(
-            step_id="advanced",
+            step_id="additional",
             data_schema=self.add_suggested_values_to_schema(
                 vol.Schema(step_schema), options
             ),
@@ -368,7 +368,7 @@ class OpenAISubentrySTTFlowHandler(ConfigSubentryFlow):
     ) -> SubentryFlowResult:
         """Manage initial options."""
         # abort if entry is not loaded
-        if self._get_entry().state != ConfigEntryState.LOADED:
+        if self._get_entry().state is not ConfigEntryState.LOADED:
             return self.async_abort(reason="entry_not_loaded")
 
         options = self.options
@@ -451,7 +451,7 @@ class OpenAISubentryTTSFlowHandler(ConfigSubentryFlow):
     ) -> SubentryFlowResult:
         """Manage initial options."""
         # abort if entry is not loaded
-        if self._get_entry().state != ConfigEntryState.LOADED:
+        if self._get_entry().state is not ConfigEntryState.LOADED:
             return self.async_abort(reason="entry_not_loaded")
 
         options = self.options
